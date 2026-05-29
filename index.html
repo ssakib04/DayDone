@@ -229,7 +229,7 @@ function setUserUI(user) {
 async function signInWithGoogle() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: 'https://day-done-sand.vercel.app' }
   });
   if (error) showToast('Sign in error: ' + error.message);
 }
