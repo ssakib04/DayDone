@@ -131,13 +131,13 @@ header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space
         <input class="setup-input" id="sbUrl" placeholder="https://xxxx.supabase.co" />
       </div>
       <div class="setup-field">
-        <label class="setup-label">API Key (anon or publishable)</label>
-        <input class="setup-input" id="sbKey" placeholder="eyJhbGci... or sb_publishable_..." />
+        <label class="setup-label">Anon Key</label>
+        <input class="setup-input" id="sbKey" placeholder="eyJhbGciOiJIUzI1..." />
       </div>
       <button class="btn-connect" onclick="connectSupabase()">Connect &amp; save →</button>
       <div id="setupError" class="error-msg"></div>
       <div class="setup-note">
-        Get these from <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> → your project → <strong>Settings → API Keys</strong>. Use the <strong>publishable key</strong> (new projects) or the <strong>anon key</strong> under the Legacy tab.<br><br>
+        Get these from <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> → your project → Settings → API.<br><br>
         First, run this SQL in your Supabase <strong>SQL Editor</strong>:<br>
         <code style="display:block;background:var(--surface);padding:8px;border-radius:6px;margin-top:6px;font-size:11px;line-height:1.6;word-break:break-all">
 CREATE TABLE tasks (<br>
