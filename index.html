@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DayDone – Task Tracker</title>
+<title>DayDone</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -15,21 +15,32 @@
   --danger:#ff6b6b;--success:#5eefc8;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding:0}
-.app{display:grid;grid-template-rows:auto 1fr;min-height:100vh;max-width:900px;margin:0 auto;padding:0 16px 40px}
-
-header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-0.5px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:0 16px 40px}
+header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-0.5px;flex-shrink:0}
 .logo span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:10px}
 .date-chip{font-size:12px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);padding:5px 12px;border-radius:20px;font-family:var(--mono)}
-
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:0.5px solid var(--border);padding:5px 12px 5px 6px;border-radius:20px}
+.avatar-initials{width:22px;height:22px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0}
+.user-name{font-size:12px;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-signout{background:transparent;border:0.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-family:var(--font);padding:4px 10px;cursor:pointer;transition:all .15s}
+.btn-signout:hover{border-color:var(--danger);color:var(--danger)}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh}
+.login-card{background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:40px 36px;max-width:380px;width:100%;text-align:center}
+.login-logo{font-family:var(--mono);font-size:28px;font-weight:500;margin-bottom:6px}
+.login-logo span{color:var(--accent)}
+.login-tagline{font-size:14px;color:var(--muted);margin-bottom:32px;line-height:1.5}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:var(--font);font-weight:500;padding:14px;cursor:pointer;transition:all .2s}
+.btn-google:hover{border-color:var(--accent)}
+.google-icon{width:18px;height:18px;flex-shrink:0}
+.login-note{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}
 .tabs{display:flex;gap:4px;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px}
 .tab{flex:1;padding:8px;border:none;background:transparent;color:var(--muted);font-size:13px;font-family:var(--font);font-weight:500;border-radius:8px;cursor:pointer;transition:all .18s}
 .tab.active{background:var(--card);color:var(--text);border:0.5px solid var(--border)}
-
 .today-grid{display:grid;grid-template-columns:1fr 200px;gap:16px;align-items:start}
 @media(max-width:580px){.today-grid{grid-template-columns:1fr}}
-
 .ring-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .ring-wrap{position:relative;width:120px;height:120px}
 .ring-wrap svg{transform:rotate(-90deg)}
@@ -39,12 +50,9 @@ header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space
 .ring-pct{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1}
 .ring-label{font-size:10px;color:var(--muted);margin-top:2px}
 .ring-stats{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
-.ring-stats strong{color:var(--text)}
-
 .tasks-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
 .tasks-header{display:flex;justify-content:space-between;align-items:center}
 .tasks-title{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-
 .input-row{display:flex;gap:8px;align-items:center}
 .task-input{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .15s}
 .task-input:focus{border-color:var(--accent)}
@@ -55,29 +63,25 @@ header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space
 .btn-mic:hover{border-color:var(--accent);color:var(--accent)}
 .btn-mic.recording{border-color:var(--danger);color:var(--danger);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
 .task-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
 .task-list::-webkit-scrollbar{width:3px}
-.task-list::-webkit-scrollbar-track{background:transparent}
 .task-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.task-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;transition:all .15s;animation:slideIn .2s ease-out}
+.task-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;animation:slideIn .2s ease-out}
 @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .task-item.done{opacity:.5}
 .task-item.done .task-text{text-decoration:line-through;color:var(--muted)}
 .task-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .task-check.checked{background:var(--accent2);border-color:var(--accent2)}
-.task-check.checked::after{content:'✓';font-size:10px;color:#0d0d0f;font-weight:700}
+.task-check.checked::after{content:"\2713";font-size:10px;color:#0d0d0f;font-weight:700}
 .task-text{flex:1;font-size:14px;line-height:1.4}
 .btn-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .15s}
 .task-item:hover .btn-del{opacity:1}
 .btn-del:hover{color:var(--danger)}
 .empty-state{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
 .empty-icon{font-size:28px;margin-bottom:8px}
-
 .progress-bar-wrap{width:100%}
 .progress-bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
-
 .history-view{display:flex;flex-direction:column;gap:16px}
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px}
 .chart-title{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
@@ -85,70 +89,48 @@ header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space
 .hist-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:0.5px solid var(--border);border-radius:10px}
 .hist-date{font-family:var(--mono);font-size:12px;color:var(--muted);width:80px;flex-shrink:0}
 .hist-bar-bg{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.hist-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.hist-bar-fill{height:100%;border-radius:3px;transition:width .4s}
 .hist-pct{font-family:var(--mono);font-size:12px;color:var(--text);width:38px;text-align:right;flex-shrink:0}
-
-.setup-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:28px;max-width:480px;margin:40px auto}
-.setup-title{font-size:20px;font-weight:500;margin-bottom:8px}
-.setup-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
-.setup-field{margin-bottom:14px}
-.setup-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;font-family:var(--mono)}
-.setup-input{width:100%;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none;transition:border-color .15s}
-.setup-input:focus{border-color:var(--accent)}
-.btn-connect{width:100%;background:var(--accent);border:none;border-radius:10px;color:#fff;padding:12px;font-size:14px;font-family:var(--font);font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .15s}
-.btn-connect:hover{opacity:.85}
-.setup-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7}
-.setup-note a{color:var(--accent);text-decoration:none}
-.error-msg{font-size:12px;color:var(--danger);margin-top:8px}
-
+.loading-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh;flex-direction:column;gap:12px}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--text);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:999}
 .toast.show{opacity:1;transform:translateY(0)}
-
-.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block;margin-right:6px}
-.conn-badge{display:flex;align-items:center;font-size:11px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);padding:4px 10px;border-radius:20px;cursor:pointer}
-.conn-badge:hover{border-color:var(--danger)}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="logo">day<span>done</span></div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div id="connBadge" class="conn-badge" onclick="resetSetup()" title="Click to reconfigure">
-        <span class="status-dot" id="statusDot" style="background:var(--muted)"></span>
-        <span id="connLabel">not connected</span>
+    <div class="header-right">
+      <div id="userPill" style="display:none" class="user-pill">
+        <div class="avatar-initials" id="avatarInitials"></div>
+        <span class="user-name" id="userName"></span>
       </div>
       <div class="date-chip" id="dateChip"></div>
+      <button class="btn-signout" id="signOutBtn" style="display:none" onclick="signOut()">Sign out</button>
     </div>
   </header>
 
-  <div id="setupView" style="display:none">
-    <div class="setup-card">
-      <div class="setup-title">Connect to Supabase</div>
-      <div class="setup-desc">Enter your Supabase project credentials to get started. Your data will be stored privately in your own database.</div>
-      <div class="setup-field">
-        <label class="setup-label">Project URL</label>
-        <input class="setup-input" id="sbUrl" placeholder="https://xxxx.supabase.co" />
-      </div>
-      <div class="setup-field">
-        <label class="setup-label">Anon Key</label>
-        <input class="setup-input" id="sbKey" placeholder="eyJhbGciOiJIUzI1..." />
-      </div>
-      <button class="btn-connect" onclick="connectSupabase()">Connect &amp; save →</button>
-      <div id="setupError" class="error-msg"></div>
-      <div class="setup-note">
-        Get these from <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> → your project → Settings → API.<br><br>
-        First, run this SQL in your Supabase <strong>SQL Editor</strong>:<br>
-        <code style="display:block;background:var(--surface);padding:8px;border-radius:6px;margin-top:6px;font-size:11px;line-height:1.6;word-break:break-all">
-CREATE TABLE tasks (<br>
-&nbsp;&nbsp;id uuid DEFAULT gen_random_uuid() PRIMARY KEY,<br>
-&nbsp;&nbsp;text text NOT NULL,<br>
-&nbsp;&nbsp;done boolean DEFAULT false,<br>
-&nbsp;&nbsp;date text NOT NULL,<br>
-&nbsp;&nbsp;created_at timestamptz DEFAULT now()<br>
-);
-        </code>
-      </div>
+  <div id="loadingView" class="loading-wrap">
+    <div class="spinner"></div>
+    <span style="font-size:13px;color:var(--muted)">Loading...</span>
+  </div>
+
+  <div id="loginView" style="display:none" class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">day<span>done</span></div>
+      <div class="login-tagline">Track your daily tasks.<br>See your progress over time.</div>
+      <button class="btn-google" onclick="signInWithGoogle()">
+        <svg class="google-icon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with Google
+      </button>
+      <div class="login-note">Your tasks are private — only you can see them.<br>Free forever, no credit card needed.</div>
     </div>
   </div>
 
@@ -157,7 +139,6 @@ CREATE TABLE tasks (<br>
       <button class="tab active" onclick="switchTab('today',this)">Today</button>
       <button class="tab" onclick="switchTab('history',this)">History</button>
     </div>
-
     <div id="todayView">
       <div class="today-grid">
         <div class="tasks-card">
@@ -170,14 +151,13 @@ CREATE TABLE tasks (<br>
           </div>
           <div class="input-row">
             <input class="task-input" id="taskInput" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()"/>
-            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Voice input">🎙</button>
+            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Voice input">&#127897;</button>
             <button class="btn-add" onclick="addTask()">Add</button>
           </div>
           <div class="task-list" id="taskList">
-            <div class="empty-state"><div class="empty-icon">✦</div>No tasks yet. What's on for today?</div>
+            <div class="empty-state"><div class="empty-icon">&#10022;</div>No tasks yet. What's on for today?</div>
           </div>
         </div>
-
         <div class="ring-card">
           <div class="ring-wrap">
             <svg viewBox="0 0 120 120" width="120" height="120">
@@ -193,15 +173,14 @@ CREATE TABLE tasks (<br>
         </div>
       </div>
     </div>
-
     <div id="historyView" style="display:none" class="history-view">
       <div class="chart-card">
         <div class="chart-title">Completion rate — last 30 days</div>
-        <div style="position:relative;height:220px"><canvas id="histChart" role="img" aria-label="Bar chart of daily task completion rates over the past 30 days"></canvas></div>
+        <div style="position:relative;height:220px"><canvas id="histChart" role="img" aria-label="Daily task completion rates"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Recent days</div>
-        <div class="history-list" id="histList"><div style="color:var(--muted);font-size:13px;padding:8px">Loading…</div></div>
+        <div class="history-list" id="histList"><div style="color:var(--muted);font-size:13px;padding:8px">Loading...</div></div>
       </div>
     </div>
   </div>
@@ -209,206 +188,185 @@ CREATE TABLE tasks (<br>
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY='daydone_creds';
-let supaClient=null,tasks=[],recognition=null,isRecording=false,histChart=null;
+const SUPABASE_URL = 'https://haqujowgkrxlvsczhgbg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_FK3ElDe1bCzvmzVphWm18A_tj7p1nTd';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function today(){return new Date().toISOString().slice(0,10)}
-function fmt(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+let tasks = [], recognition = null, isRecording = false, histChart = null, currentUser = null;
 
-document.getElementById('dateChip').textContent=fmt(today());
+function today() { return new Date().toISOString().slice(0, 10); }
+function fmt(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
 
-function showToast(msg,dur=2200){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),dur);
+document.getElementById('dateChip').textContent = fmt(today());
+
+function showToast(msg, dur = 2400) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
 }
 
-function setConnected(ok){
-  document.getElementById('statusDot').style.background=ok?'var(--success)':'var(--muted)';
-  document.getElementById('connLabel').textContent=ok?'connected':'not connected';
+function showView(v) {
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = 'none';
+  if (v === 'loading') document.getElementById('loadingView').style.display = 'flex';
+  else if (v === 'login') document.getElementById('loginView').style.display = 'flex';
+  else if (v === 'main') document.getElementById('mainView').style.display = 'block';
 }
 
-function resetSetup(){
-  if(!confirm('Disconnect and reconfigure Supabase credentials?'))return;
-  localStorage.removeItem(STORAGE_KEY);
-  supaClient=null;tasks=[];
-  document.getElementById('mainView').style.display='none';
-  document.getElementById('setupView').style.display='block';
-  setConnected(false);
+function setUserUI(user) {
+  currentUser = user;
+  if (!user) return;
+  const name = user.user_metadata?.full_name || user.email || 'User';
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('avatarInitials').textContent = initials;
+  document.getElementById('userName').textContent = name.split(' ')[0];
+  document.getElementById('userPill').style.display = 'flex';
+  document.getElementById('signOutBtn').style.display = 'block';
 }
 
-async function connectSupabase(){
-  const url=document.getElementById('sbUrl').value.trim();
-  const key=document.getElementById('sbKey').value.trim();
-  const err=document.getElementById('setupError');
-  err.textContent='';
-  if(!url||!key){err.textContent='Both fields required.';return;}
-  try{
-    const {createClient}=window.supabase;
-    const client=createClient(url,key);
-    const {error}=await client.from('tasks').select('id').limit(1);
-    if(error){err.textContent='Error: '+error.message+'. Make sure you created the tasks table (see SQL above).';return;}
-    supaClient=client;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify({url,key}));
-    document.getElementById('setupView').style.display='none';
-    document.getElementById('mainView').style.display='block';
-    setConnected(true);
+async function signInWithGoogle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) showToast('Sign in error: ' + error.message);
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null; tasks = [];
+  document.getElementById('userPill').style.display = 'none';
+  document.getElementById('signOutBtn').style.display = 'none';
+  showView('login');
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    setUserUI(session.user);
+    showView('main');
     await loadTodayTasks();
-  }catch(e){err.textContent='Connection failed: '+e.message;}
-}
+  } else {
+    showView('login');
+  }
+});
 
-async function tryAutoConnect(){
-  const saved=localStorage.getItem(STORAGE_KEY);
-  if(!saved){document.getElementById('setupView').style.display='block';return;}
-  const {url,key}=JSON.parse(saved);
-  const {createClient}=window.supabase;
-  supaClient=createClient(url,key);
-  try{
-    const {error}=await supaClient.from('tasks').select('id').limit(1);
-    if(error){supaClient=null;document.getElementById('setupView').style.display='block';return;}
-    setConnected(true);
-    document.getElementById('mainView').style.display='block';
+(async () => {
+  showView('loading');
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    setUserUI(session.user);
+    showView('main');
     await loadTodayTasks();
-  }catch(e){document.getElementById('setupView').style.display='block';}
-}
+  } else {
+    showView('login');
+  }
+})();
 
-async function loadTodayTasks(){
-  if(!supaClient)return;
-  const {data,error}=await supaClient.from('tasks').select('*').eq('date',today()).order('created_at');
-  if(error){showToast('Load error: '+error.message);return;}
-  tasks=data||[];
+async function loadTodayTasks() {
+  if (!currentUser) return;
+  const { data, error } = await sb.from('tasks').select('*').eq('date', today()).eq('user_id', currentUser.id).order('created_at');
+  if (error) { showToast('Load error: ' + error.message); return; }
+  tasks = data || [];
   renderTasks();
 }
 
-function renderTasks(){
-  const list=document.getElementById('taskList');
-  const done=tasks.filter(t=>t.done).length;
-  const total=tasks.length;
-  const pct=total?Math.round(done/total*100):0;
-  document.getElementById('taskCount').textContent=done+' / '+total;
-  document.getElementById('progressBar').style.width=pct+'%';
-  document.getElementById('ringPct').textContent=pct+'%';
-  document.getElementById('ringFill').style.strokeDashoffset=314-(314*pct/100);
-  document.getElementById('ringStats').innerHTML=done+' of '+total+'<br>tasks complete';
-  if(!tasks.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">✦</div>No tasks yet. What\'s on for today?</div>';return;}
-  list.innerHTML=tasks.map(t=>`
-    <div class="task-item${t.done?' done':''}" id="ti-${t.id}">
-      <div class="task-check${t.done?' checked':''}" onclick="toggleTask('${t.id}')"></div>
-      <span class="task-text">${escHtml(t.text)}</span>
-      <button class="btn-del" onclick="deleteTask('${t.id}')" title="Delete">✕</button>
-    </div>`).join('');
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('taskCount').textContent = done + ' / ' + total;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('ringPct').textContent = pct + '%';
+  document.getElementById('ringFill').style.strokeDashoffset = 314 - (314 * pct / 100);
+  document.getElementById('ringStats').innerHTML = done + ' of ' + total + '<br>tasks complete';
+  if (!tasks.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#10022;</div>No tasks yet. What\'s on for today?</div>'; return; }
+  list.innerHTML = tasks.map(t => `<div class="task-item${t.done ? ' done' : ''}"><div class="task-check${t.done ? ' checked' : ''}" onclick="toggleTask('${t.id}')"></div><span class="task-text">${escHtml(t.text)}</span><button class="btn-del" onclick="deleteTask('${t.id}')">&#x2715;</button></div>`).join('');
 }
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-async function addTask(){
-  const inp=document.getElementById('taskInput');
-  const text=inp.value.trim();
-  if(!text||!supaClient)return;
-  inp.value='';
-  const {data,error}=await supaClient.from('tasks').insert({text,done:false,date:today()}).select().single();
-  if(error){showToast('Error: '+error.message);return;}
+async function addTask() {
+  const inp = document.getElementById('taskInput');
+  const text = inp.value.trim();
+  if (!text || !currentUser) return;
+  inp.value = '';
+  const { data, error } = await sb.from('tasks').insert({ text, done: false, date: today(), user_id: currentUser.id }).select().single();
+  if (error) { showToast('Error: ' + error.message); inp.value = text; return; }
   tasks.push(data);
   renderTasks();
 }
 
-async function toggleTask(id){
-  const t=tasks.find(x=>x.id===id);
-  if(!t)return;
-  const newDone=!t.done;
-  const {error}=await supaClient.from('tasks').update({done:newDone}).eq('id',id);
-  if(error){showToast('Error: '+error.message);return;}
-  t.done=newDone;
-  renderTasks();
+async function toggleTask(id) {
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  const newDone = !t.done;
+  const { error } = await sb.from('tasks').update({ done: newDone }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message); return; }
+  t.done = newDone; renderTasks();
 }
 
-async function deleteTask(id){
-  const {error}=await supaClient.from('tasks').delete().eq('id',id);
-  if(error){showToast('Error: '+error.message);return;}
-  tasks=tasks.filter(x=>x.id!==id);
-  renderTasks();
+async function deleteTask(id) {
+  const { error } = await sb.from('tasks').delete().eq('id', id);
+  if (error) { showToast('Error: ' + error.message); return; }
+  tasks = tasks.filter(x => x.id !== id); renderTasks();
 }
 
-function toggleMic(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){showToast('Speech not supported in this browser — try Chrome');return;}
-  if(isRecording){recognition&&recognition.stop();return;}
-  recognition=new SR();
-  recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';
-  recognition.onstart=()=>{isRecording=true;document.getElementById('micBtn').classList.add('recording');showToast('🎙 Listening…',5000)};
-  recognition.onresult=e=>{
-    const t=Array.from(e.results).map(r=>r[0].transcript).join('');
-    document.getElementById('taskInput').value=t;
-  };
-  recognition.onend=()=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');};
-  recognition.onerror=e=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');showToast('Mic error: '+e.error);};
+function toggleMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Speech not supported in this browser'); return; }
+  if (isRecording) { recognition && recognition.stop(); return; }
+  recognition = new SR();
+  recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US';
+  recognition.onstart = () => { isRecording = true; document.getElementById('micBtn').classList.add('recording'); showToast('Listening...', 5000); };
+  recognition.onresult = e => { document.getElementById('taskInput').value = Array.from(e.results).map(r => r[0].transcript).join(''); };
+  recognition.onend = () => { isRecording = false; document.getElementById('micBtn').classList.remove('recording'); };
+  recognition.onerror = e => { isRecording = false; document.getElementById('micBtn').classList.remove('recording'); showToast('Mic error: ' + e.error); };
   recognition.start();
 }
 
-function switchTab(tab,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('todayView').style.display=tab==='today'?'block':'none';
-  document.getElementById('historyView').style.display=tab==='history'?'flex':'none';
-  if(tab==='history')loadHistory();
+  document.getElementById('todayView').style.display = tab === 'today' ? 'block' : 'none';
+  document.getElementById('historyView').style.display = tab === 'history' ? 'flex' : 'none';
+  if (tab === 'history') loadHistory();
 }
 
-async function loadHistory(){
-  if(!supaClient)return;
-  const {data,error}=await supaClient.from('tasks').select('date,done').order('date',{ascending:false});
-  if(error||!data)return;
-  const byDate={};
-  data.forEach(({date,done})=>{
-    if(!byDate[date])byDate[date]={total:0,done:0};
-    byDate[date].total++;
-    if(done)byDate[date].done++;
+async function loadHistory() {
+  if (!currentUser) return;
+  const { data, error } = await sb.from('tasks').select('date,done').eq('user_id', currentUser.id).order('date', { ascending: false });
+  if (error || !data) return;
+  const byDate = {};
+  data.forEach(({ date, done }) => {
+    if (!byDate[date]) byDate[date] = { total: 0, done: 0 };
+    byDate[date].total++; if (done) byDate[date].done++;
   });
-  const dates=Object.keys(byDate).sort().slice(-30);
-  const pcts=dates.map(d=>Math.round(byDate[d].done/byDate[d].total*100));
-  renderHistList(dates,byDate);
-  renderHistChart(dates,pcts);
+  const dates = Object.keys(byDate).sort().slice(-30);
+  const pcts = dates.map(d => Math.round(byDate[d].done / byDate[d].total * 100));
+  renderHistList(dates, byDate);
+  renderHistChart(dates, pcts);
 }
 
-function renderHistList(dates,byDate){
-  const el=document.getElementById('histList');
-  if(!dates.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">No history yet — check back after your first day!</div>';return;}
-  el.innerHTML=[...dates].reverse().map(d=>{
-    const pct=Math.round(byDate[d].done/byDate[d].total*100);
-    return `<div class="hist-row">
-      <span class="hist-date">${d===today()?'today':fmt(d)}</span>
-      <div class="hist-bar-bg"><div class="hist-bar-fill" style="width:${pct}%;background:${pct===100?'var(--accent2)':'var(--accent)'}"></div></div>
-      <span class="hist-pct">${pct}%</span>
-    </div>`;
+function renderHistList(dates, byDate) {
+  const el = document.getElementById('histList');
+  if (!dates.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">No history yet!</div>'; return; }
+  el.innerHTML = [...dates].reverse().map(d => {
+    const pct = Math.round(byDate[d].done / byDate[d].total * 100);
+    return `<div class="hist-row"><span class="hist-date">${d === today() ? 'today' : fmt(d)}</span><div class="hist-bar-bg"><div class="hist-bar-fill" style="width:${pct}%;background:${pct === 100 ? 'var(--accent2)' : 'var(--accent)'}"></div></div><span class="hist-pct">${pct}%</span></div>`;
   }).join('');
 }
 
-function renderHistChart(dates,pcts){
-  if(histChart)histChart.destroy();
-  const ctx=document.getElementById('histChart').getContext('2d');
-  histChart=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:dates.map(d=>d.slice(5)),
-      datasets:[{
-        label:'% done',
-        data:pcts,
-        backgroundColor:pcts.map(p=>p===100?'rgba(94,239,200,0.7)':'rgba(124,111,238,0.6)'),
-        borderColor:pcts.map(p=>p===100?'#5eefc8':'#7c6fee'),
-        borderWidth:1,borderRadius:4
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>c.parsed.y+'%'}}},
-      scales:{
-        x:{ticks:{color:'#7a7a90',font:{size:11},maxRotation:45,autoSkip:true},grid:{color:'rgba(255,255,255,0.04)'}},
-        y:{min:0,max:100,ticks:{color:'#7a7a90',font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.06)'}}
-      }
-    }
+function renderHistChart(dates, pcts) {
+  if (histChart) histChart.destroy();
+  const ctx = document.getElementById('histChart').getContext('2d');
+  histChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: dates.map(d => d.slice(5)), datasets: [{ label: '% done', data: pcts, backgroundColor: pcts.map(p => p === 100 ? 'rgba(94,239,200,0.7)' : 'rgba(124,111,238,0.6)'), borderColor: pcts.map(p => p === 100 ? '#5eefc8' : '#7c6fee'), borderWidth: 1, borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } }, scales: { x: { ticks: { color: '#7a7a90', font: { size: 11 }, maxRotation: 45, autoSkip: true }, grid: { color: 'rgba(255,255,255,0.04)' } }, y: { min: 0, max: 100, ticks: { color: '#7a7a90', font: { size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.06)' } } } }
   });
 }
-
-tryAutoConnect();
 </script>
 </body>
 </html>
