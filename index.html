@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DayDone – Task Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--surface:#18181c;--card:#1e1e24;--border:#2a2a35;
+  --accent:#7c6fee;--accent2:#5eefc8;--text:#f0f0f5;--muted:#7a7a90;
+  --danger:#ff6b6b;--success:#5eefc8;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding:0}
+.app{display:grid;grid-template-rows:auto 1fr;min-height:100vh;max-width:900px;margin:0 auto;padding:0 16px 40px}
+
+header{padding:28px 0 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-0.5px}
+.logo span{color:var(--accent)}
+.date-chip{font-size:12px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);padding:5px 12px;border-radius:20px;font-family:var(--mono)}
+
+.tabs{display:flex;gap:4px;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px}
+.tab{flex:1;padding:8px;border:none;background:transparent;color:var(--muted);font-size:13px;font-family:var(--font);font-weight:500;border-radius:8px;cursor:pointer;transition:all .18s}
+.tab.active{background:var(--card);color:var(--text);border:0.5px solid var(--border)}
+
+.today-grid{display:grid;grid-template-columns:1fr 200px;gap:16px;align-items:start}
+@media(max-width:580px){.today-grid{grid-template-columns:1fr}}
+
+.ring-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ring-wrap{position:relative;width:120px;height:120px}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{stroke:var(--border);fill:none;stroke-width:8}
+.ring-fill{fill:none;stroke-width:8;stroke-linecap:round;stroke:var(--accent);transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1}
+.ring-label{font-size:10px;color:var(--muted);margin-top:2px}
+.ring-stats{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+.ring-stats strong{color:var(--text)}
+
+.tasks-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.tasks-header{display:flex;justify-content:space-between;align-items:center}
+.tasks-title{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+.input-row{display:flex;gap:8px;align-items:center}
+.task-input{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .15s}
+.task-input:focus{border-color:var(--accent)}
+.task-input::placeholder{color:var(--muted)}
+.btn-add{background:var(--accent);border:none;border-radius:10px;color:#fff;padding:10px 16px;font-size:14px;font-family:var(--font);font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.btn-add:hover{opacity:.85}
+.btn-mic{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;color:var(--muted);padding:10px 12px;font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center}
+.btn-mic:hover{border-color:var(--accent);color:var(--accent)}
+.btn-mic.recording{border-color:var(--danger);color:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.task-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.task-list::-webkit-scrollbar{width:3px}
+.task-list::-webkit-scrollbar-track{background:transparent}
+.task-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.task-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;transition:all .15s;animation:slideIn .2s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.task-item.done{opacity:.5}
+.task-item.done .task-text{text-decoration:line-through;color:var(--muted)}
+.task-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.task-check.checked{background:var(--accent2);border-color:var(--accent2)}
+.task-check.checked::after{content:'✓';font-size:10px;color:#0d0d0f;font-weight:700}
+.task-text{flex:1;font-size:14px;line-height:1.4}
+.btn-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .15s}
+.task-item:hover .btn-del{opacity:1}
+.btn-del:hover{color:var(--danger)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+.empty-icon{font-size:28px;margin-bottom:8px}
+
+.progress-bar-wrap{width:100%}
+.progress-bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+.history-view{display:flex;flex-direction:column;gap:16px}
+.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:20px}
+.chart-title{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.history-list{display:flex;flex-direction:column;gap:6px}
+.hist-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:0.5px solid var(--border);border-radius:10px}
+.hist-date{font-family:var(--mono);font-size:12px;color:var(--muted);width:80px;flex-shrink:0}
+.hist-bar-bg{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.hist-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.hist-pct{font-family:var(--mono);font-size:12px;color:var(--text);width:38px;text-align:right;flex-shrink:0}
+
+.setup-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:28px;max-width:480px;margin:40px auto}
+.setup-title{font-size:20px;font-weight:500;margin-bottom:8px}
+.setup-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.setup-field{margin-bottom:14px}
+.setup-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;font-family:var(--mono)}
+.setup-input{width:100%;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none;transition:border-color .15s}
+.setup-input:focus{border-color:var(--accent)}
+.btn-connect{width:100%;background:var(--accent);border:none;border-radius:10px;color:#fff;padding:12px;font-size:14px;font-family:var(--font);font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.btn-connect:hover{opacity:.85}
+.setup-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7}
+.setup-note a{color:var(--accent);text-decoration:none}
+.error-msg{font-size:12px;color:var(--danger);margin-top:8px}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--text);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block;margin-right:6px}
+.conn-badge{display:flex;align-items:center;font-size:11px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);padding:4px 10px;border-radius:20px;cursor:pointer}
+.conn-badge:hover{border-color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">day<span>done</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div id="connBadge" class="conn-badge" onclick="resetSetup()" title="Click to reconfigure">
+        <span class="status-dot" id="statusDot" style="background:var(--muted)"></span>
+        <span id="connLabel">not connected</span>
+      </div>
+      <div class="date-chip" id="dateChip"></div>
+    </div>
+  </header>
+
+  <div id="setupView" style="display:none">
+    <div class="setup-card">
+      <div class="setup-title">Connect to Supabase</div>
+      <div class="setup-desc">Enter your Supabase project credentials to get started. Your data will be stored privately in your own database.</div>
+      <div class="setup-field">
+        <label class="setup-label">Project URL</label>
+        <input class="setup-input" id="sbUrl" placeholder="https://xxxx.supabase.co" />
+      </div>
+      <div class="setup-field">
+        <label class="setup-label">API Key (anon or publishable)</label>
+        <input class="setup-input" id="sbKey" placeholder="eyJhbGci... or sb_publishable_..." />
+      </div>
+      <button class="btn-connect" onclick="connectSupabase()">Connect &amp; save →</button>
+      <div id="setupError" class="error-msg"></div>
+      <div class="setup-note">
+        Get these from <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> → your project → <strong>Settings → API Keys</strong>. Use the <strong>publishable key</strong> (new projects) or the <strong>anon key</strong> under the Legacy tab.<br><br>
+        First, run this SQL in your Supabase <strong>SQL Editor</strong>:<br>
+        <code style="display:block;background:var(--surface);padding:8px;border-radius:6px;margin-top:6px;font-size:11px;line-height:1.6;word-break:break-all">
+CREATE TABLE tasks (<br>
+&nbsp;&nbsp;id uuid DEFAULT gen_random_uuid() PRIMARY KEY,<br>
+&nbsp;&nbsp;text text NOT NULL,<br>
+&nbsp;&nbsp;done boolean DEFAULT false,<br>
+&nbsp;&nbsp;date text NOT NULL,<br>
+&nbsp;&nbsp;created_at timestamptz DEFAULT now()<br>
+);
+        </code>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainView" style="display:none">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('today',this)">Today</button>
+      <button class="tab" onclick="switchTab('history',this)">History</button>
+    </div>
+
+    <div id="todayView">
+      <div class="today-grid">
+        <div class="tasks-card">
+          <div class="tasks-header">
+            <span class="tasks-title">Tasks</span>
+            <span id="taskCount" style="font-size:12px;color:var(--muted);font-family:var(--mono)">0 / 0</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+          </div>
+          <div class="input-row">
+            <input class="task-input" id="taskInput" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()"/>
+            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Voice input">🎙</button>
+            <button class="btn-add" onclick="addTask()">Add</button>
+          </div>
+          <div class="task-list" id="taskList">
+            <div class="empty-state"><div class="empty-icon">✦</div>No tasks yet. What's on for today?</div>
+          </div>
+        </div>
+
+        <div class="ring-card">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" width="120" height="120">
+              <circle class="ring-bg" cx="60" cy="60" r="50"/>
+              <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314"/>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-pct" id="ringPct">0%</span>
+              <span class="ring-label">done</span>
+            </div>
+          </div>
+          <div class="ring-stats" id="ringStats">0 of 0<br>tasks complete</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="historyView" style="display:none" class="history-view">
+      <div class="chart-card">
+        <div class="chart-title">Completion rate — last 30 days</div>
+        <div style="position:relative;height:220px"><canvas id="histChart" role="img" aria-label="Bar chart of daily task completion rates over the past 30 days"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Recent days</div>
+        <div class="history-list" id="histList"><div style="color:var(--muted);font-size:13px;padding:8px">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY='daydone_creds';
+let supaClient=null,tasks=[],recognition=null,isRecording=false,histChart=null;
+
+function today(){return new Date().toISOString().slice(0,10)}
+function fmt(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+
+document.getElementById('dateChip').textContent=fmt(today());
+
+function showToast(msg,dur=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function setConnected(ok){
+  document.getElementById('statusDot').style.background=ok?'var(--success)':'var(--muted)';
+  document.getElementById('connLabel').textContent=ok?'connected':'not connected';
+}
+
+function resetSetup(){
+  if(!confirm('Disconnect and reconfigure Supabase credentials?'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  supaClient=null;tasks=[];
+  document.getElementById('mainView').style.display='none';
+  document.getElementById('setupView').style.display='block';
+  setConnected(false);
+}
+
+async function connectSupabase(){
+  const url=document.getElementById('sbUrl').value.trim();
+  const key=document.getElementById('sbKey').value.trim();
+  const err=document.getElementById('setupError');
+  err.textContent='';
+  if(!url||!key){err.textContent='Both fields required.';return;}
+  try{
+    const {createClient}=window.supabase;
+    const client=createClient(url,key);
+    const {error}=await client.from('tasks').select('id').limit(1);
+    if(error){err.textContent='Error: '+error.message+'. Make sure you created the tasks table (see SQL above).';return;}
+    supaClient=client;
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({url,key}));
+    document.getElementById('setupView').style.display='none';
+    document.getElementById('mainView').style.display='block';
+    setConnected(true);
+    await loadTodayTasks();
+  }catch(e){err.textContent='Connection failed: '+e.message;}
+}
+
+async function tryAutoConnect(){
+  const saved=localStorage.getItem(STORAGE_KEY);
+  if(!saved){document.getElementById('setupView').style.display='block';return;}
+  const {url,key}=JSON.parse(saved);
+  const {createClient}=window.supabase;
+  supaClient=createClient(url,key);
+  try{
+    const {error}=await supaClient.from('tasks').select('id').limit(1);
+    if(error){supaClient=null;document.getElementById('setupView').style.display='block';return;}
+    setConnected(true);
+    document.getElementById('mainView').style.display='block';
+    await loadTodayTasks();
+  }catch(e){document.getElementById('setupView').style.display='block';}
+}
+
+async function loadTodayTasks(){
+  if(!supaClient)return;
+  const {data,error}=await supaClient.from('tasks').select('*').eq('date',today()).order('created_at');
+  if(error){showToast('Load error: '+error.message);return;}
+  tasks=data||[];
+  renderTasks();
+}
+
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  const done=tasks.filter(t=>t.done).length;
+  const total=tasks.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('taskCount').textContent=done+' / '+total;
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('ringPct').textContent=pct+'%';
+  document.getElementById('ringFill').style.strokeDashoffset=314-(314*pct/100);
+  document.getElementById('ringStats').innerHTML=done+' of '+total+'<br>tasks complete';
+  if(!tasks.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">✦</div>No tasks yet. What\'s on for today?</div>';return;}
+  list.innerHTML=tasks.map(t=>`
+    <div class="task-item${t.done?' done':''}" id="ti-${t.id}">
+      <div class="task-check${t.done?' checked':''}" onclick="toggleTask('${t.id}')"></div>
+      <span class="task-text">${escHtml(t.text)}</span>
+      <button class="btn-del" onclick="deleteTask('${t.id}')" title="Delete">✕</button>
+    </div>`).join('');
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+async function addTask(){
+  const inp=document.getElementById('taskInput');
+  const text=inp.value.trim();
+  if(!text||!supaClient)return;
+  inp.value='';
+  const {data,error}=await supaClient.from('tasks').insert({text,done:false,date:today()}).select().single();
+  if(error){showToast('Error: '+error.message);return;}
+  tasks.push(data);
+  renderTasks();
+}
+
+async function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  const newDone=!t.done;
+  const {error}=await supaClient.from('tasks').update({done:newDone}).eq('id',id);
+  if(error){showToast('Error: '+error.message);return;}
+  t.done=newDone;
+  renderTasks();
+}
+
+async function deleteTask(id){
+  const {error}=await supaClient.from('tasks').delete().eq('id',id);
+  if(error){showToast('Error: '+error.message);return;}
+  tasks=tasks.filter(x=>x.id!==id);
+  renderTasks();
+}
+
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Speech not supported in this browser — try Chrome');return;}
+  if(isRecording){recognition&&recognition.stop();return;}
+  recognition=new SR();
+  recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onstart=()=>{isRecording=true;document.getElementById('micBtn').classList.add('recording');showToast('🎙 Listening…',5000)};
+  recognition.onresult=e=>{
+    const t=Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('taskInput').value=t;
+  };
+  recognition.onend=()=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');};
+  recognition.onerror=e=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');showToast('Mic error: '+e.error);};
+  recognition.start();
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('todayView').style.display=tab==='today'?'block':'none';
+  document.getElementById('historyView').style.display=tab==='history'?'flex':'none';
+  if(tab==='history')loadHistory();
+}
+
+async function loadHistory(){
+  if(!supaClient)return;
+  const {data,error}=await supaClient.from('tasks').select('date,done').order('date',{ascending:false});
+  if(error||!data)return;
+  const byDate={};
+  data.forEach(({date,done})=>{
+    if(!byDate[date])byDate[date]={total:0,done:0};
+    byDate[date].total++;
+    if(done)byDate[date].done++;
+  });
+  const dates=Object.keys(byDate).sort().slice(-30);
+  const pcts=dates.map(d=>Math.round(byDate[d].done/byDate[d].total*100));
+  renderHistList(dates,byDate);
+  renderHistChart(dates,pcts);
+}
+
+function renderHistList(dates,byDate){
+  const el=document.getElementById('histList');
+  if(!dates.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">No history yet — check back after your first day!</div>';return;}
+  el.innerHTML=[...dates].reverse().map(d=>{
+    const pct=Math.round(byDate[d].done/byDate[d].total*100);
+    return `<div class="hist-row">
+      <span class="hist-date">${d===today()?'today':fmt(d)}</span>
+      <div class="hist-bar-bg"><div class="hist-bar-fill" style="width:${pct}%;background:${pct===100?'var(--accent2)':'var(--accent)'}"></div></div>
+      <span class="hist-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function renderHistChart(dates,pcts){
+  if(histChart)histChart.destroy();
+  const ctx=document.getElementById('histChart').getContext('2d');
+  histChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:dates.map(d=>d.slice(5)),
+      datasets:[{
+        label:'% done',
+        data:pcts,
+        backgroundColor:pcts.map(p=>p===100?'rgba(94,239,200,0.7)':'rgba(124,111,238,0.6)'),
+        borderColor:pcts.map(p=>p===100?'#5eefc8':'#7c6fee'),
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>c.parsed.y+'%'}}},
+      scales:{
+        x:{ticks:{color:'#7a7a90',font:{size:11},maxRotation:45,autoSkip:true},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{min:0,max:100,ticks:{color:'#7a7a90',font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
+  });
+}
+
+tryAutoConnect();
+</script>
+</body>
+</html>
