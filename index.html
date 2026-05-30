@@ -533,15 +533,31 @@ async function signInWithGoogle() {
 async function doSignOut() {
   log('doSignOut called');
   signingOut = true;
-  clearUserUI();
-  currentUser = null;
-  tasks = [];
   showView('loading');
-  const { error } = await sb.auth.signOut();
-  if (error) log('signOut error: ' + error.message, 'error');
-  else log('signOut OK', 'ok');
-  signingOut = false;
-  showView('login');
+
+  // Clear Supabase session from localStorage directly — don't wait on the network
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+    });
+    log('localStorage cleared', 'ok');
+  } catch(e) {
+    log('localStorage clear failed: ' + e.message, 'error');
+  }
+
+  // Also try the proper signOut but with a 2s timeout so we never hang
+  try {
+    await Promise.race([
+      sb.auth.signOut(),
+      new Promise(r => setTimeout(r, 2000))
+    ]);
+    log('signOut call done', 'ok');
+  } catch(e) {
+    log('signOut threw: ' + e.message, 'error');
+  }
+
+  // Hard reload — clears all in-memory state and re-runs init with no session
+  window.location.reload();
 }
 
 sb.auth.onAuthStateChange(async (event, session) => {
