@@ -432,11 +432,38 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 <div class="confetti-wrap" id="confettiWrap"></div>
 <div class="toast" id="toast"></div>
 
+<div id="debugToggle" onclick="var b=document.getElementById('debugBox');b.style.display=b.style.display==='block'?'none':'block'" style="position:fixed;bottom:24px;left:24px;background:#1c1c22;border:1px solid #32323e;border-radius:10px;padding:6px 14px;font-size:11px;color:#6b6b80;cursor:pointer;z-index:9000;font-family:monospace">⚙ debug</div>
+<div id="debugBox" style="display:none;position:fixed;bottom:64px;left:24px;width:380px;max-height:280px;background:#0d0d0f;border:1px solid #32323e;border-radius:12px;padding:12px;z-index:9001">
+  <div style="font-size:10px;color:#6b6b80;font-family:monospace;margin-bottom:6px">DIAGNOSTIC LOG</div>
+  <div id="debugPanel" style="overflow-y:auto;max-height:220px;font-family:monospace"></div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://haqujowgkrxlvsczhgbg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhcXVqb3dna3J4bHZzY3poZ2JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjcxOTEsImV4cCI6MjA5NTYwMzE5MX0.7RedCtb4REPT-_GdLHMQp_Mr1TLSp7HxMsFuWOEewRw';
+
+/* ── DEBUG PANEL ── */
+const dbg = document.getElementById('debugPanel');
+function log(msg, type='info') {
+  console.log('[DayDone]', msg);
+  const line = document.createElement('div');
+  line.style.cssText = `padding:3px 0;border-bottom:1px solid #222;font-size:11px;color:${type==='error'?'#f87171':type==='ok'?'#34d399':'#9292a8'};word-break:break-all`;
+  line.textContent = (type==='error'?'✕ ':type==='ok'?'✓ ':'· ') + msg;
+  dbg.appendChild(line);
+  dbg.scrollTop = dbg.scrollHeight;
+}
+
+if (!window.supabase) { log('FATAL: supabase-js failed to load from CDN', 'error'); }
+else { log('supabase-js loaded OK', 'ok'); }
+
 const { createClient } = window.supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb;
+try {
+  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  log('Supabase client created OK', 'ok');
+} catch(e) {
+  log('FATAL: createClient failed: ' + e.message, 'error');
+}
 
 const CIRCUMFERENCE = 364.4;
 let tasks = [], recognition = null, isRecording = false, histChart = null, currentUser = null, signingOut = false;
@@ -492,26 +519,34 @@ function clearUserUI() {
 
 /* ── AUTH ── */
 async function signInWithGoogle() {
+  log('signInWithGoogle clicked, origin: ' + window.location.origin);
+  const redirectTo = window.location.href.split('?')[0].split('#')[0];
+  log('redirectTo: ' + redirectTo);
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href.split('?')[0].split('#')[0] }
+    options: { redirectTo }
   });
-  if (error) showToast('Sign in error: ' + error.message);
+  if (error) { log('OAuth error: ' + error.message, 'error'); showToast('Sign in error: ' + error.message); }
+  else { log('OAuth redirect initiated', 'ok'); }
 }
 
 async function doSignOut() {
+  log('doSignOut called');
   signingOut = true;
   clearUserUI();
   currentUser = null;
   tasks = [];
   showView('loading');
-  await sb.auth.signOut();
+  const { error } = await sb.auth.signOut();
+  if (error) log('signOut error: ' + error.message, 'error');
+  else log('signOut OK', 'ok');
   signingOut = false;
   showView('login');
 }
 
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (signingOut) return;
+  log('onAuthStateChange: ' + event + (session?.user ? ' user=' + session.user.email : ' no-session'));
+  if (signingOut) { log('ignoring — signing out'); return; }
   if (session?.user) {
     setUserUI(session.user);
     showView('main');
@@ -527,26 +562,36 @@ sb.auth.onAuthStateChange(async (event, session) => {
 (async () => {
   showView('loading');
   updateDateChip();
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    setUserUI(session.user);
-    showView('main');
-    await loadTodayTasks();
-    loadStreakBadge();
-  } else {
+  log('getSession called...');
+  try {
+    const { data, error } = await sb.auth.getSession();
+    if (error) { log('getSession error: ' + error.message, 'error'); showView('login'); return; }
+    log('getSession result: ' + (data.session?.user?.email || 'no session'));
+    if (data.session?.user) {
+      setUserUI(data.session.user);
+      showView('main');
+      await loadTodayTasks();
+      loadStreakBadge();
+    } else {
+      showView('login');
+    }
+  } catch(e) {
+    log('getSession threw: ' + e.message, 'error');
     showView('login');
   }
 })();
 
 /* ── TASKS ── */
 async function loadTodayTasks() {
-  if (!currentUser) return;
+  if (!currentUser) { log('loadTodayTasks: no currentUser, skipping', 'error'); return; }
+  log('loadTodayTasks for date=' + todayStr());
   const { data, error } = await sb.from('tasks')
     .select('*')
     .eq('date', todayStr())
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending: true });
-  if (error) { showToast('Load error: ' + error.message); return; }
+  if (error) { log('loadTodayTasks error: ' + error.message, 'error'); showToast('Load error: ' + error.message); return; }
+  log('loaded ' + (data?.length||0) + ' tasks', 'ok');
   tasks = data || [];
   renderTasks();
 }
@@ -586,15 +631,22 @@ function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+let addingTask = false;
 async function addTask() {
+  if (addingTask) return; // prevent double-submit
   const inp = document.getElementById('taskInput');
   const text = inp.value.trim();
-  if (!text || !currentUser) return;
+  log('addTask: text="' + text + '" user=' + (currentUser?.id||'none'));
+  if (!text) { log('addTask: empty text', 'error'); return; }
+  if (!currentUser) { log('addTask: not logged in', 'error'); showToast('Not signed in!'); return; }
+  addingTask = true;
   inp.value = '';
   const { data, error } = await sb.from('tasks')
     .insert({ text, done: false, date: todayStr(), user_id: currentUser.id })
     .select().single();
-  if (error) { showToast('Error: ' + error.message); inp.value = text; return; }
+  addingTask = false;
+  if (error) { log('addTask error: ' + error.message, 'error'); showToast('Error: ' + error.message); inp.value = text; return; }
+  log('addTask OK id=' + data.id, 'ok');
   tasks.push(data);
   renderTasks();
 }
@@ -647,17 +699,81 @@ async function loadStreakBadge() {
 }
 
 /* ── MIC ── */
+function stopMic() {
+  isRecording = false;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('micBtn').textContent = '🎙';
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+}
+
 function toggleMic() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { showToast('Speech not supported in this browser'); return; }
-  if (isRecording) { recognition && recognition.stop(); return; }
+  if (!SR) { showToast('Speech not supported — try Chrome or Edge'); return; }
+  if (isRecording) { stopMic(); return; }
+
+  // Reset any stuck state first
+  stopMic();
+
   recognition = new SR();
-  recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US';
-  recognition.onstart = () => { isRecording = true; document.getElementById('micBtn').classList.add('recording'); };
-  recognition.onresult = e => { document.getElementById('taskInput').value = Array.from(e.results).map(r => r[0].transcript).join(''); };
-  recognition.onend = () => { isRecording = false; document.getElementById('micBtn').classList.remove('recording'); };
-  recognition.onerror = e => { isRecording = false; document.getElementById('micBtn').classList.remove('recording'); showToast('Mic error: ' + e.error); };
-  recognition.start();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  let finalTranscript = '';
+
+  recognition.onstart = () => {
+    isRecording = true;
+    finalTranscript = '';
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micBtn').textContent = '⏹';
+    document.getElementById('taskInput').placeholder = 'Listening...';
+    log('mic started', 'ok');
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    finalTranscript = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('taskInput').value = finalTranscript || interim;
+  };
+
+  recognition.onend = () => {
+    log('mic ended, transcript="' + finalTranscript + '"', 'ok');
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micBtn').textContent = '🎙';
+    document.getElementById('taskInput').placeholder = 'What needs doing today?';
+    recognition = null;
+    // Auto-add if we got a final transcript
+    if (finalTranscript.trim()) {
+      document.getElementById('taskInput').value = finalTranscript.trim();
+      addTask();
+    }
+  };
+
+  recognition.onerror = (e) => {
+    log('mic error: ' + e.error, 'error');
+    stopMic();
+    document.getElementById('taskInput').placeholder = 'What needs doing today?';
+    const msgs = {
+      'not-allowed': 'Mic access denied — allow microphone in browser settings',
+      'no-speech': 'No speech detected — try again',
+      'network': 'Network error with speech service',
+      'audio-capture': 'No microphone found',
+    };
+    showToast(msgs[e.error] || 'Mic error: ' + e.error);
+  };
+
+  try {
+    recognition.start();
+  } catch(e) {
+    log('recognition.start() threw: ' + e.message, 'error');
+    stopMic();
+    showToast('Could not start mic: ' + e.message);
+  }
 }
 
 /* ── TABS ── */
