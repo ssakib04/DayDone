@@ -31,7 +31,6 @@
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
 
-/* subtle grid bg */
 body::before{
   content:'';position:fixed;inset:0;
   background-image:linear-gradient(rgba(167,139,250,0.03) 1px,transparent 1px),
@@ -42,7 +41,6 @@ body::before{
 
 .app{max-width:940px;margin:0 auto;padding:0 20px 60px;position:relative;z-index:1}
 
-/* ── HEADER ── */
 header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .logo{font-size:22px;font-weight:800;letter-spacing:-1px;cursor:default;user-select:none}
 .logo-day{color:var(--text)}
@@ -76,7 +74,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 }
 .btn-signout:hover{border-color:var(--danger);color:var(--danger);background:rgba(248,113,113,.07)}
 
-/* ── LOADING ── */
 .loading-wrap{display:flex;align-items:center;justify-content:center;min-height:75vh;flex-direction:column;gap:16px}
 .spinner{
   width:32px;height:32px;
@@ -86,8 +83,13 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:12px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em}
+.btn-retry{
+  margin-top:8px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:10px;color:var(--text);font-size:12px;font-family:var(--font);
+  padding:8px 16px;cursor:pointer;transition:all .2s;
+}
+.btn-retry:hover{border-color:var(--accent)}
 
-/* ── LOGIN ── */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:75vh}
 .login-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
@@ -121,7 +123,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .google-icon{width:18px;height:18px;flex-shrink:0}
 .login-note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.7}
 
-/* ── TABS ── */
 .tabs{
   display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r);padding:3px;margin-bottom:28px;
@@ -134,11 +135,9 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .tab.active{background:var(--card2);color:var(--text);border:1px solid var(--border2);box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .tab:not(.active):hover{color:var(--muted2)}
 
-/* ── TODAY LAYOUT ── */
 .today-grid{display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start}
 @media(max-width:600px){.today-grid{grid-template-columns:1fr}}
 
-/* ── RING CARD ── */
 .ring-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
   padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;
@@ -160,7 +159,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 }
 .streak-icon{font-size:14px}
 
-/* ── TASKS CARD ── */
 .tasks-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
   padding:24px;display:flex;flex-direction:column;gap:14px;
@@ -172,7 +170,19 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
   padding:3px 10px;font-size:11px;font-family:var(--mono);color:var(--muted2);
 }
 
-/* progress */
+.carried-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);
+  border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--muted2);
+}
+.carried-banner span.cb-icon{margin-right:6px}
+.btn-clear-carried{
+  background:transparent;border:1px solid var(--border2);border-radius:8px;
+  color:var(--muted);font-size:11px;font-family:var(--font);padding:4px 10px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-clear-carried:hover{border-color:var(--danger);color:var(--danger)}
+
 .progress-wrap{position:relative}
 .progress-bg{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
 .progress-fill{
@@ -188,7 +198,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
   transition:opacity .3s;
 }
 
-/* input row */
 .input-row{display:flex;gap:8px;align-items:center}
 .task-input{
   flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
@@ -214,7 +223,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .btn-mic.recording{border-color:var(--danger);color:var(--danger);animation:pulse-border 1s infinite}
 @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.3)}50%{box-shadow:0 0 0 5px rgba(248,113,113,0)}}
 
-/* task list */
 .task-list{display:flex;flex-direction:column;gap:5px;max-height:360px;overflow-y:auto;padding-right:2px}
 .task-list::-webkit-scrollbar{width:3px}
 .task-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -236,6 +244,8 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .task-item.done{opacity:.45}
 .task-item.done::before{background:var(--accent2);transform:scaleY(1)}
 .task-item.done .task-text{text-decoration:line-through;color:var(--muted)}
+.task-item.carried{border-color:rgba(167,139,250,.3)}
+.task-item.carried::before{background:var(--accent3);transform:scaleY(1)}
 .task-item.removing{
   animation:task-out .25s ease-in forwards;
 }
@@ -252,6 +262,11 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .task-check.checked{background:var(--accent2);border-color:var(--accent2);transform:scale(1)}
 .task-check.checked::after{content:"✓";font-size:11px;color:#09090b;font-weight:700;line-height:1}
 .task-text{flex:1;font-size:14px;line-height:1.4;font-weight:400}
+.carried-tag{
+  font-size:9px;color:var(--accent3);background:rgba(244,114,182,.1);
+  border:1px solid rgba(244,114,182,.25);border-radius:6px;padding:2px 6px;
+  font-family:var(--mono);letter-spacing:.04em;flex-shrink:0;white-space:nowrap;
+}
 .btn-del{
   background:transparent;border:none;color:var(--muted);cursor:pointer;
   font-size:14px;padding:3px 5px;border-radius:6px;
@@ -260,7 +275,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .task-item:hover .btn-del{opacity:1}
 .btn-del:hover{color:var(--danger);background:rgba(248,113,113,.1)}
 
-/* empty */
 .empty-state{
   text-align:center;padding:40px 16px;color:var(--muted);
   display:flex;flex-direction:column;align-items:center;gap:10px;
@@ -269,7 +283,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .empty-text{font-size:13px;line-height:1.6}
 
-/* confetti container */
 .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
 .confetti-piece{
   position:absolute;top:-10px;width:8px;height:8px;border-radius:2px;
@@ -279,7 +292,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
   to{transform:translateY(110vh) rotate(720deg);opacity:0}
 }
 
-/* ── HISTORY ── */
 .history-view{display:flex;flex-direction:column;gap:16px}
 .chart-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
@@ -308,7 +320,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 .stat-num{font-size:22px;font-weight:800;letter-spacing:-1px;font-family:var(--mono)}
 .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 
-/* toast */
 .toast{
   position:fixed;bottom:24px;right:24px;
   background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);
@@ -320,7 +331,6 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 }
 .toast.show{opacity:1;transform:translateY(0) scale(1)}
 
-/* animations */
 @keyframes fade-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .main-enter{animation:fade-in .3s ease-out}
 </style>
@@ -343,7 +353,8 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 
   <div id="loadingView" class="loading-wrap">
     <div class="spinner"></div>
-    <span class="loading-text">Loading...</span>
+    <span class="loading-text" id="loadingText">Loading...</span>
+    <button class="btn-retry" id="retryBtn" style="display:none" onclick="hardResetAndRetry()">Tap to retry</button>
   </div>
 
   <div id="loginView" style="display:none" class="login-wrap">
@@ -374,6 +385,10 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
           <div class="tasks-header">
             <span class="tasks-title">Tasks</span>
             <span id="taskCount" class="task-count-pill">0 / 0</span>
+          </div>
+          <div id="carriedBanner" style="display:none" class="carried-banner">
+            <span><span class="cb-icon">↩</span><span id="carriedText">2 tasks carried from yesterday</span></span>
+            <button class="btn-clear-carried" onclick="removeAllCarried()">Remove them</button>
           </div>
           <div class="progress-wrap">
             <div class="progress-bg"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
@@ -432,45 +447,33 @@ header{padding:32px 0 24px;display:flex;align-items:center;justify-content:space
 <div class="confetti-wrap" id="confettiWrap"></div>
 <div class="toast" id="toast"></div>
 
-<div id="debugToggle" onclick="var b=document.getElementById('debugBox');b.style.display=b.style.display==='block'?'none':'block'" style="position:fixed;bottom:24px;left:24px;background:#1c1c22;border:1px solid #32323e;border-radius:10px;padding:6px 14px;font-size:11px;color:#6b6b80;cursor:pointer;z-index:9000;font-family:monospace">⚙ debug</div>
-<div id="debugBox" style="display:none;position:fixed;bottom:64px;left:24px;width:380px;max-height:280px;background:#0d0d0f;border:1px solid #32323e;border-radius:12px;padding:12px;z-index:9001">
-  <div style="font-size:10px;color:#6b6b80;font-family:monospace;margin-bottom:6px">DIAGNOSTIC LOG</div>
-  <div id="debugPanel" style="overflow-y:auto;max-height:220px;font-family:monospace"></div>
-</div>
-
 <script>
 const SUPABASE_URL = 'https://haqujowgkrxlvsczhgbg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhcXVqb3dna3J4bHZzY3poZ2JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjcxOTEsImV4cCI6MjA5NTYwMzE5MX0.7RedCtb4REPT-_GdLHMQp_Mr1TLSp7HxMsFuWOEewRw';
 
-/* ── DEBUG PANEL ── */
-const dbg = document.getElementById('debugPanel');
-function log(msg, type='info') {
-  console.log('[DayDone]', msg);
-  const line = document.createElement('div');
-  line.style.cssText = `padding:3px 0;border-bottom:1px solid #222;font-size:11px;color:${type==='error'?'#f87171':type==='ok'?'#34d399':'#9292a8'};word-break:break-all`;
-  line.textContent = (type==='error'?'✕ ':type==='ok'?'✓ ':'· ') + msg;
-  dbg.appendChild(line);
-  dbg.scrollTop = dbg.scrollHeight;
-}
-
-if (!window.supabase) { log('FATAL: supabase-js failed to load from CDN', 'error'); }
-else { log('supabase-js loaded OK', 'ok'); }
-
 const { createClient } = window.supabase;
-let sb;
-try {
-  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-  log('Supabase client created OK', 'ok');
-} catch(e) {
-  log('FATAL: createClient failed: ' + e.message, 'error');
-}
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  }
+});
 
 const CIRCUMFERENCE = 364.4;
 let tasks = [], recognition = null, isRecording = false, histChart = null, currentUser = null, signingOut = false;
+let initWatchdog = null;
 
 /* ── DATE HELPERS ── */
 function todayStr() {
   const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function yesterdayStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
   return d.getFullYear() + '-' +
     String(d.getMonth()+1).padStart(2,'0') + '-' +
     String(d.getDate()).padStart(2,'0');
@@ -496,9 +499,15 @@ function showView(v) {
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('mainView').style.display = 'none';
+  document.getElementById('retryBtn').style.display = 'none';
   if (v === 'loading') document.getElementById('loadingView').style.display = 'flex';
   else if (v === 'login') { document.getElementById('loginView').style.display = 'flex'; }
   else if (v === 'main') { document.getElementById('mainView').style.display = 'block'; }
+}
+
+function showStuckRetry(msg) {
+  document.getElementById('loadingText').textContent = msg || "Taking longer than expected...";
+  document.getElementById('retryBtn').style.display = 'inline-block';
 }
 
 function setUserUI(user) {
@@ -517,56 +526,46 @@ function clearUserUI() {
   document.getElementById('signOutBtn').style.display = 'none';
 }
 
-/* ── AUTH ── */
-async function signInWithGoogle() {
-  log('signInWithGoogle clicked, origin: ' + window.location.origin);
-  const redirectTo = window.location.href.split('?')[0].split('#')[0];
-  log('redirectTo: ' + redirectTo);
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo }
-  });
-  if (error) { log('OAuth error: ' + error.message, 'error'); showToast('Sign in error: ' + error.message); }
-  else { log('OAuth redirect initiated', 'ok'); }
-}
-
-async function doSignOut() {
-  log('doSignOut called');
-  signingOut = true;
-  showView('loading');
-
-  // Clear Supabase session from localStorage directly — don't wait on the network
+/* ── HARD RESET (fixes the "stuck logged in but nothing loads" bug) ── */
+function hardResetAndRetry() {
   try {
     Object.keys(localStorage).forEach(k => {
       if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
     });
-    log('localStorage cleared', 'ok');
-  } catch(e) {
-    log('localStorage clear failed: ' + e.message, 'error');
-  }
+  } catch(e) {}
+  window.location.reload();
+}
 
-  // Also try the proper signOut but with a 2s timeout so we never hang
+/* ── AUTH ── */
+async function signInWithGoogle() {
+  const redirectTo = window.location.href.split('?')[0].split('#')[0];
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo }
+  });
+  if (error) { showToast('Sign in error: ' + error.message); }
+}
+
+async function doSignOut() {
+  signingOut = true;
+  showView('loading');
   try {
-    await Promise.race([
-      sb.auth.signOut(),
-      new Promise(r => setTimeout(r, 2000))
-    ]);
-    log('signOut call done', 'ok');
-  } catch(e) {
-    log('signOut threw: ' + e.message, 'error');
-  }
-
-  // Hard reload — clears all in-memory state and re-runs init with no session
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+    });
+  } catch(e) {}
+  try {
+    await Promise.race([ sb.auth.signOut(), new Promise(r => setTimeout(r, 2000)) ]);
+  } catch(e) {}
   window.location.reload();
 }
 
 sb.auth.onAuthStateChange(async (event, session) => {
-  log('onAuthStateChange: ' + event + (session?.user ? ' user=' + session.user.email : ' no-session'));
-  if (signingOut) { log('ignoring — signing out'); return; }
+  if (signingOut) return;
   if (session?.user) {
     setUserUI(session.user);
     showView('main');
-    await loadTodayTasks();
+    await bootstrapToday();
   } else {
     clearUserUI();
     currentUser = null;
@@ -575,39 +574,109 @@ sb.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-(async () => {
+async function initApp() {
   showView('loading');
   updateDateChip();
-  log('getSession called...');
+
+  // Watchdog: if init hasn't resolved in 8s, something is wrong (stale token, dead network, etc) — offer a retry that clears local session state.
+  initWatchdog = setTimeout(() => {
+    showStuckRetry("This is taking a while — your session might be stale.");
+  }, 8000);
+
   try {
-    const { data, error } = await sb.auth.getSession();
-    if (error) { log('getSession error: ' + error.message, 'error'); showView('login'); return; }
-    log('getSession result: ' + (data.session?.user?.email || 'no session'));
-    if (data.session?.user) {
-      setUserUI(data.session.user);
-      showView('main');
-      await loadTodayTasks();
-      loadStreakBadge();
-    } else {
+    // getSession() reads local storage but does NOT guarantee the token still works server-side.
+    // We verify it by following up with getUser(), which actually round-trips to Supabase.
+    const { data: sessionData, error: sessionErr } = await sb.auth.getSession();
+    if (sessionErr || !sessionData.session) {
+      clearTimeout(initWatchdog);
       showView('login');
+      return;
     }
+
+    const { data: userData, error: userErr } = await sb.auth.getUser();
+    clearTimeout(initWatchdog);
+
+    if (userErr || !userData?.user) {
+      // Token exists locally but is no longer valid server-side — this is exactly
+      // the "looks logged in but nothing works" bug. Clear it and force a clean login.
+      try {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+        });
+      } catch(e) {}
+      showView('login');
+      return;
+    }
+
+    setUserUI(userData.user);
+    showView('main');
+    await bootstrapToday();
   } catch(e) {
-    log('getSession threw: ' + e.message, 'error');
-    showView('login');
+    clearTimeout(initWatchdog);
+    showStuckRetry("Connection issue — tap to retry.");
   }
-})();
+}
+initApp();
+
+/* ── BOOTSTRAP: carry over yesterday's unfinished tasks, then load today ── */
+async function bootstrapToday() {
+  await carryOverUnfinished();
+  await loadTodayTasks();
+  loadStreakBadge();
+}
+
+async function carryOverUnfinished() {
+  if (!currentUser) return;
+  const y = yesterdayStr();
+  const t = todayStr();
+
+  // Already-carried tasks for today are tagged via the `carried` column,
+  // so this is safe to run every time the app opens without duplicating.
+  const { data: alreadyToday, error: todayErr } = await sb.from('tasks')
+    .select('id')
+    .eq('user_id', currentUser.id)
+    .eq('date', t)
+    .limit(1);
+  if (todayErr) return;
+
+  // Only run carry-over the first time today's list is touched in a session.
+  // Cheap guard: check if we've already carried anything in for today.
+  const { data: carriedAlready } = await sb.from('tasks')
+    .select('id')
+    .eq('user_id', currentUser.id)
+    .eq('date', t)
+    .eq('carried', true)
+    .limit(1);
+  if (carriedAlready && carriedAlready.length) return;
+
+  const { data: unfinished, error } = await sb.from('tasks')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('date', y)
+    .eq('done', false);
+  if (error || !unfinished || !unfinished.length) return;
+
+  const rows = unfinished.map(u => ({
+    text: u.text,
+    done: false,
+    date: t,
+    user_id: currentUser.id,
+    carried: true
+  }));
+  const { error: insErr } = await sb.from('tasks').insert(rows);
+  if (insErr) { showToast('Could not carry over tasks: ' + insErr.message); return; }
+  showToast('↩ ' + rows.length + ' unfinished task' + (rows.length>1?'s':'') + ' carried to today');
+}
 
 /* ── TASKS ── */
 async function loadTodayTasks() {
-  if (!currentUser) { log('loadTodayTasks: no currentUser, skipping', 'error'); return; }
-  log('loadTodayTasks for date=' + todayStr());
+  if (!currentUser) return;
   const { data, error } = await sb.from('tasks')
     .select('*')
     .eq('date', todayStr())
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending: true });
-  if (error) { log('loadTodayTasks error: ' + error.message, 'error'); showToast('Load error: ' + error.message); return; }
-  log('loaded ' + (data?.length||0) + ' tasks', 'ok');
+  if (error) { showToast('Load error: ' + error.message); return; }
   tasks = data || [];
   renderTasks();
 }
@@ -627,7 +696,16 @@ function renderTasks() {
   document.getElementById('ringFill').style.stroke = pct === 100 ? 'var(--accent2)' : 'var(--accent)';
   document.getElementById('ringStats').innerHTML = done + ' of ' + total + '<br>tasks complete';
 
-  // confetti when hitting 100%
+  const carried = tasks.filter(t => t.carried && !t.done);
+  const banner = document.getElementById('carriedBanner');
+  if (carried.length) {
+    document.getElementById('carriedText').textContent =
+      carried.length + ' unfinished task' + (carried.length>1?'s':'') + ' carried from yesterday';
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+
   if (pct === 100 && prevDone < total && total > 0) launchConfetti();
   prevDone = done;
 
@@ -636,9 +714,10 @@ function renderTasks() {
     return;
   }
   list.innerHTML = tasks.map(t => `
-    <div class="task-item${t.done ? ' done' : ''}" id="ti-${t.id}">
+    <div class="task-item${t.done ? ' done' : ''}${t.carried ? ' carried' : ''}" id="ti-${t.id}">
       <div class="task-check${t.done ? ' checked' : ''}" onclick="toggleTask('${t.id}')"></div>
       <span class="task-text">${escHtml(t.text)}</span>
+      ${t.carried ? '<span class="carried-tag">carried</span>' : ''}
       <button class="btn-del" onclick="deleteTask('${t.id}')" title="Delete">✕</button>
     </div>`).join('');
 }
@@ -649,20 +728,18 @@ function escHtml(s) {
 
 let addingTask = false;
 async function addTask() {
-  if (addingTask) return; // prevent double-submit
+  if (addingTask) return;
   const inp = document.getElementById('taskInput');
   const text = inp.value.trim();
-  log('addTask: text="' + text + '" user=' + (currentUser?.id||'none'));
-  if (!text) { log('addTask: empty text', 'error'); return; }
-  if (!currentUser) { log('addTask: not logged in', 'error'); showToast('Not signed in!'); return; }
+  if (!text) return;
+  if (!currentUser) { showToast('Not signed in!'); return; }
   addingTask = true;
   inp.value = '';
   const { data, error } = await sb.from('tasks')
-    .insert({ text, done: false, date: todayStr(), user_id: currentUser.id })
+    .insert({ text, done: false, date: todayStr(), user_id: currentUser.id, carried: false })
     .select().single();
   addingTask = false;
-  if (error) { log('addTask error: ' + error.message, 'error'); showToast('Error: ' + error.message); inp.value = text; return; }
-  log('addTask OK id=' + data.id, 'ok');
+  if (error) { showToast('Error: ' + error.message); inp.value = text; return; }
   tasks.push(data);
   renderTasks();
 }
@@ -683,6 +760,16 @@ async function deleteTask(id) {
   if (error) { showToast('Error: ' + error.message); return; }
   tasks = tasks.filter(x => x.id !== id);
   renderTasks();
+}
+
+async function removeAllCarried() {
+  const carriedIds = tasks.filter(t => t.carried && !t.done).map(t => t.id);
+  if (!carriedIds.length) return;
+  const { error } = await sb.from('tasks').delete().in('id', carriedIds);
+  if (error) { showToast('Error: ' + error.message); return; }
+  tasks = tasks.filter(t => !carriedIds.includes(t.id));
+  renderTasks();
+  showToast('Carried-over tasks removed');
 }
 
 /* ── STREAK ── */
@@ -726,8 +813,6 @@ function toggleMic() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { showToast('Speech not supported — try Chrome or Edge'); return; }
   if (isRecording) { stopMic(); return; }
-
-  // Reset any stuck state first
   stopMic();
 
   recognition = new SR();
@@ -743,7 +828,6 @@ function toggleMic() {
     document.getElementById('micBtn').classList.add('recording');
     document.getElementById('micBtn').textContent = '⏹';
     document.getElementById('taskInput').placeholder = 'Listening...';
-    log('mic started', 'ok');
   };
 
   recognition.onresult = (e) => {
@@ -757,13 +841,11 @@ function toggleMic() {
   };
 
   recognition.onend = () => {
-    log('mic ended, transcript="' + finalTranscript + '"', 'ok');
     isRecording = false;
     document.getElementById('micBtn').classList.remove('recording');
     document.getElementById('micBtn').textContent = '🎙';
     document.getElementById('taskInput').placeholder = 'What needs doing today?';
     recognition = null;
-    // Auto-add if we got a final transcript
     if (finalTranscript.trim()) {
       document.getElementById('taskInput').value = finalTranscript.trim();
       addTask();
@@ -771,7 +853,6 @@ function toggleMic() {
   };
 
   recognition.onerror = (e) => {
-    log('mic error: ' + e.error, 'error');
     stopMic();
     document.getElementById('taskInput').placeholder = 'What needs doing today?';
     const msgs = {
@@ -786,7 +867,6 @@ function toggleMic() {
   try {
     recognition.start();
   } catch(e) {
-    log('recognition.start() threw: ' + e.message, 'error');
     stopMic();
     showToast('Could not start mic: ' + e.message);
   }
@@ -821,7 +901,6 @@ async function loadHistory() {
   const last30 = allDates.slice(-30);
   const pcts = last30.map(d => Math.round(byDate[d].done / byDate[d].total * 100));
 
-  // stats
   const totalTasks = data.length;
   const avgPct = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : 0;
   let bestStreak = 0, cur = 0;
@@ -912,6 +991,6 @@ function launchConfetti() {
   import { inject } from "https://unpkg.com/@vercel/analytics/dist/index.mjs";
   inject();
 </script>
-  
+
 </body>
 </html>
